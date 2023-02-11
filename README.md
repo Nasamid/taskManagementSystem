@@ -2,7 +2,7 @@
 
 A task Management Java Application for Students
 
-Uses KControls library for modern feels, 
+Uses KControls library for modern look and feel, 
 link: https://github.com/k33ptoo/KControls
 
 
