@@ -1,9 +1,11 @@
 package taskManagementSystem;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 import java.awt.*;
+import java.awt.TrayIcon.MessageType;
 import java.awt.event.*;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -13,7 +15,12 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.Calendar;
+import java.util.Date;
+
 import com.k33ptoo.components.KButton;
 import com.k33ptoo.components.KGradientPanel;
 import com.toedter.calendar.*;
@@ -29,7 +36,7 @@ public class taskManagementSystem {
 		String currentDateTime = sdf.format(cal.getTime());
 		
 		//Welcome Frame
-		JFrame wFrame = new JFrame ();
+		JFrame wFrame = new JFrame ("Task Management System");
 		wFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		wFrame.setSize(860,490);
 		wFrame.setLocation(360, 150);
@@ -60,7 +67,6 @@ public class taskManagementSystem {
 		frame.setSize(1060,690);
 		frame.setLocation(250, 50);
 		frame.setUndecorated(true);
-		frame.setEnabled(false);
 
 		//Main Frame Design
 		ImageIcon bgImage = new ImageIcon("C:\\Users\\danil\\eclipse-workspace\\TaskManagementSystem\\src\\taskManagementSystem\\BG1.png");
@@ -99,7 +105,7 @@ public class taskManagementSystem {
 		frame.add(minimize);
 
 		//JTable Construction
-		DefaultTableModel model = new DefaultTableModel() { // Makes Table Uneditable
+		DefaultTableModel model = new DefaultTableModel() { // Makes Table UNEDITABLE
 
 		    @Override
 		    public boolean isCellEditable(int row, int column) {
@@ -358,24 +364,23 @@ public class taskManagementSystem {
 		//JCalendar
 		JLabel currentDate = new JLabel ("Current Date:");
 		currentDate.setForeground(Color.white);
-		currentDate.setBounds(790, 298, 200, 50);
+		currentDate.setBounds(800, 298, 200, 50);
 		currentDate.setFont(new Font("Arial", Font.ITALIC, 15 ));
 		JCalendar calendar = new JCalendar();
 		KGradientPanel calendarPanel = new KGradientPanel();
-		calendarPanel.setBounds(790, 340, 240, 180);
+		calendarPanel.setBounds(800, 340, 240, 180);
 		calendarPanel.setkBorderRadius(0);
 		calendarPanel.setkStartColor(new Color(13,181,182));
 		calendarPanel.setkEndColor(new Color(55,4,57));
 		calendarPanel.add(calendar);
 		
 		//Credits
-		JLabel createdBy = new JLabel ("Created By: Danilo Llaga");
+		JLabel createdBy = new JLabel ();
 		createdBy.setForeground(Color.white);
-		createdBy.setBounds(850, 650, 200, 20);
+		createdBy.setBounds(870, 650, 200, 20);
 		createdBy.setFont(new Font("Times New Roman", Font.ITALIC, 13));
-		table.setAutoCreateRowSorter(true);
 		
-		//Set App Icon
+		//Set Application Icon
 		Image icon = Toolkit.getDefaultToolkit().getImage("C:\\Users\\danil\\eclipse-workspace\\TaskManagementSystem\\src\\taskManagementSystem\\icon.png");
 		frame.setIconImage(icon);
 		historyFrame.setIconImage(icon);
@@ -424,16 +429,18 @@ public class taskManagementSystem {
 		editTaskFrame.add(cancelButton2);
 		editTaskFrame.add(bgImageContainer2);
 		
-		//create a new file for saving data in the table
+		//Location of file for saving and loading data in the table
 		File myFile = new File("C:\\Users\\danil\\eclipse-workspace\\TaskManagementSystem\\src\\taskManagementSystem\\file.txt");
+		File filed = new File("C:\\Users\\danil\\eclipse-workspace\\TaskManagementSystem\\src\\taskManagementSystem\\log2.txt");
 
-		//continue Welcome Page
+		//continueButton in Welcome Page
 		continues.addActionListener(new ActionListener() {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				frame.setEnabled(true);
 				wFrame.dispose();
+				addTask.doClick();
 			}
 			
 		});
@@ -555,6 +562,7 @@ public class taskManagementSystem {
 				else{
 					//Add Data to Table
 					model.addRow(new Object[]{TaskName,SelectType, PickDate, SubjectName, Description });	
+					table.getColumnModel().getColumn(2).setCellRenderer(new MyTableCellRenderer());
 					
 					//Add to Log
 							try {
@@ -731,7 +739,7 @@ public class taskManagementSystem {
 			        subjectName2.setText("");
 			        description2.setText("");
 				}
-				//gets task name of seleccted row
+				//gets task name of selected row
 				String name =(String) model.getValueAt(row, 0); 
 				String type = (String) model.getValueAt(row, 1);
 				try {
@@ -765,9 +773,10 @@ public class taskManagementSystem {
 		
 		//doneTask ActionListener
 		doneTask.addActionListener(new ActionListener() {
-
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				
+				
 				if(!table.getSelectionModel().isSelectionEmpty()) {
 					int a = JOptionPane.showConfirmDialog((Component)null, "Mark task as finished?", "Yes",JOptionPane.YES_NO_OPTION);
 					if(a==0) {
@@ -782,7 +791,11 @@ public class taskManagementSystem {
 								fw.write("\n(" + currentDateTime + ") Finished:\n");
 								fw.append(name + " - " + type + "\n---------------------------------------------------------------------------------------------------------------");
 								fw.close();
-							
+								
+								FileWriter fw2 = new FileWriter("C:\\Users\\danil\\eclipse-workspace\\TaskManagementSystem\\src\\taskManagementSystem\\log2.txt",true);
+								fw2.append("D");
+								fw2.close();
+								
 						} catch (IOException e2) {
 							e2.printStackTrace();
 						}
@@ -798,6 +811,16 @@ public class taskManagementSystem {
 							historyFrame.pack();
 							historyFrame.setSize(400, 700);
 							historyFrame.setLocation(1080, 100);
+							
+							//Reads Tasks Finished
+							File filed = new File("C:\\Users\\danil\\eclipse-workspace\\TaskManagementSystem\\src\\taskManagementSystem\\log2.txt");
+							FileReader fr2 = new FileReader (filed);
+							BufferedReader br2 = new BufferedReader (fr2);
+							char[] chars = new char[(int)filed.length()];
+							
+							int count = br2.read(chars);
+								createdBy.setText("Tasks Finished: " + count);
+								
 						}catch (IOException e1) {
 							e1.printStackTrace();
 						}
@@ -806,6 +829,7 @@ public class taskManagementSystem {
 				        editTask.setEnabled(false);
 						deleteTask.setEnabled(false);
 						doneTask.setEnabled(false);
+						
 						
 					}
 				}
@@ -819,6 +843,9 @@ public class taskManagementSystem {
 				
 			@Override
 			public void windowOpened(WindowEvent e) {
+				//Set Table color for dates
+				table.getColumnModel().getColumn(2).setCellRenderer(new MyTableCellRenderer());
+				
 				//Load Table Data to File
 				try {
 					FileReader fr = new FileReader (myFile);
@@ -833,6 +860,14 @@ public class taskManagementSystem {
 					
 					br.close();
 					fr.close();
+					
+					FileReader fr2 = new FileReader (filed);
+					BufferedReader br2 = new BufferedReader (fr2);
+					
+					char[] chars = new char[(int)filed.length()];
+					
+					int count = br2.read(chars);
+						createdBy.setText("Tasks Finished: " + count);;
 					
 				} catch (IOException e1) {
 					// TODO Auto-generated catch block
@@ -882,12 +917,17 @@ public class taskManagementSystem {
 
 		//Check If Table is Empty
 		try {
-			FileReader fr = new FileReader (myFile);
+			FileReader fr = new FileReader (filed);
 			BufferedReader br = new BufferedReader (fr);
 			
+			FileReader fr1 = new FileReader (myFile);
+			BufferedReader br1 = new BufferedReader (fr1);
+			
 			Object [] lines = br.lines().toArray();
-			if (lines.length == 0) {
+			Object [] lines2 = br1.lines().toArray();
+			if (lines.length == 0 && lines2.length == 0 ) {
 				wFrame.setVisible(true);
+				frame.setEnabled(false);
 			}
 			
 		} catch (Exception e) {
@@ -895,6 +935,100 @@ public class taskManagementSystem {
 		}
 
 	}
+	
+// New Class Dedicated to detecting dates, rearranging, and coloring them inside JTable and sending system notification
+public class MyTableCellRenderer extends DefaultTableCellRenderer {
+    
+    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM d, yyyy");
+    private boolean notificationSent = false;
+    
+    @Override
+    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int col) {
+        super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col);
+
+        // check if the value is a valid date in the expected format
+        if (value instanceof String) {
+            try {
+                LocalDate date = LocalDate.parse((String) value, formatter);
+                LocalDate tomorrow = LocalDate.now().plusDays(1);
+                LocalDate today = LocalDate.now();
+                
+                // iterate over the rows to arrange them by date
+                for (int i = 0; i < table.getRowCount() - 1; i++) {
+                    for (int j = i + 1; j < table.getRowCount(); j++) {
+                        Object valueI = table.getValueAt(i, col);
+                        Object valueJ = table.getValueAt(j, col);
+                        if (valueI instanceof String && valueJ instanceof String) {
+                            try {
+                                LocalDate dateI = LocalDate.parse((String) valueI, formatter);
+                                LocalDate dateJ = LocalDate.parse((String) valueJ, formatter);
+                                if (dateI.isAfter(dateJ)) {
+                                    // swap the positions of the two rows
+                                    for (int k = 0; k < table.getColumnCount(); k++) {
+                                        Object temp = table.getValueAt(i, k);
+                                        table.setValueAt(table.getValueAt(j, k), i, k);
+                                        table.setValueAt(temp, j, k);
+                                    }
+                                }
+                            } catch (DateTimeParseException e) {
+                                // ignore invalid dates
+                            }
+                        }
+                    }
+                }
+                
+                // highlight the row based on the date
+                if (date.isEqual(tomorrow)) {
+                    setBackground(Color.YELLOW);
+                    if (!notificationSent) {
+                        sendNotification("Due Date Upcoming","A task has an upcoming due date");
+                        notificationSent = true;
+                    }
+                }
+                else if(date.isEqual(today)) {
+                    setBackground(Color.orange);
+                    if (!notificationSent) {
+                        sendNotification("Task Due Today","A task is due today!");
+                        notificationSent = true;
+                    }
+                }
+                else if(date.isBefore(today)) {
+                    setBackground(Color.red);
+                    if (!notificationSent) {
+                        sendNotification("Task Overdue","A task is Overdue");
+                        notificationSent = true;
+                    }
+                }
+                else if (date.isAfter(today)) {
+                    setBackground(Color.green);
+                }
+                else {
+                    setBackground(table.getBackground());
+                }
+            } catch (DateTimeParseException e) {
+                setBackground(table.getBackground());
+            } 
+        } else {
+            setBackground(table.getBackground());
+        }
+        return this;
+    }
+    private void sendNotification(String message1, String message2) {
+    	SystemTray tray = SystemTray.getSystemTray();
+        Image image = Toolkit.getDefaultToolkit().createImage("C:\\Users\\danil\\eclipse-workspace\\TaskManagementSystem\\src\\taskManagementSystem\\icon.png");
+        TrayIcon trayIcon = new TrayIcon(image,"Due Date Upcoming");
+        trayIcon.setImageAutoSize(true);
+        trayIcon.setToolTip("Task Management System");
+
+        try {
+			tray.add(trayIcon);
+		} catch (AWTException e) {
+			e.printStackTrace();
+		}
+        trayIcon.displayMessage(message1, message2, MessageType.INFO);
+        tray.remove(trayIcon);
+    }
+}
 	
 	public static void main(String[] args) {
 		new taskManagementSystem();
