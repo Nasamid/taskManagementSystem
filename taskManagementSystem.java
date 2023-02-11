@@ -219,6 +219,8 @@ public class taskManagementSystem {
 		dateLabel.setFont(new Font("Arial", Font.BOLD,15));
 		dateLabel.setBounds(50,105,80,20);
 		JDateChooser pickDate = new JDateChooser();
+		pickDate.getCalendarButton().setBackground(Color.orange);
+		pickDate.getDateEditor().getUiComponent().setBackground(bgcomp);
 		pickDate.setBounds(100,100,200,30);
 		pickDate.setBackground(bgcomp);
 		
@@ -276,6 +278,8 @@ public class taskManagementSystem {
 				dateLabel2.setFont(new Font("Arial", Font.BOLD,15));
 				dateLabel2.setBounds(50,105,80,20);
 				JDateChooser pickDate2 = new JDateChooser();
+				pickDate2.getCalendarButton().setBackground(Color.orange);
+				pickDate2.getDateEditor().getUiComponent().setBackground(bgcomp);
 				pickDate2.setBounds(100,100,200,30);
 				pickDate2.setBackground(bgcomp);
 				
